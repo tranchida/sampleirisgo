@@ -1,4 +1,13 @@
-GET http://localhost:8080/demo/sample
-Authorization: Basic test test
+#simple
+GET http://test:test@localhost:8080/ping
+
+###
+# with params
+GET http://test:test@localhost:8080/ping/giampaolo
+
+###
+
+GET https://demo:demo@samplegingo-xcigta.apps.lab01.k8s.etat-de-vaud.ch/ping
+
 
 
