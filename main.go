@@ -2,59 +2,80 @@ package main
 
 import (
 	"encoding/base64"
-	"os"
-	"os/signal"
+	"encoding/xml"
+	"log"
+	"net/http"
 	"strings"
 
-	"github.com/kataras/iris/v12"
+	"github.com/gin-gonic/gin"
 )
 
-func newApp() *iris.Application {
-
-	app := iris.Default()
-	app.RegisterView(iris.HTML("./templates", ".html").Reload(true))
-	app.Favicon("./resources/favicon.ico")
-	app.HandleDir("/assets", iris.Dir("./assets"))
-	app.Get("/demo/{name}", demo)
-
-	return app
+type Pong struct {
+	XMLName  xml.Name `xml:"http://evd.vd.ch/1000 response"`
+	XmlnsMx  string   `xml:"mx,attr,omitempty"`
+	XmlnsX14 string   `xml:"x14,attr,omitempty"`
+	Result   string   `xml:"result"`
+	Message  string   `xml:"message"`
 }
 
-func demo(ctx iris.Context) {
+func pong(ctx *gin.Context) {
 
-	auth := ctx.GetHeader("Authorization")
-	if auth != "" {
+	name := ctx.Param("name")
 
-		b64 := strings.Split(auth, " ")[1]
-		clear, err := base64.RawStdEncoding.DecodeString(b64)
-		if err != nil {
-			ctx.StopWithError(iris.StatusInternalServerError, err)
-			return
+	if name != "" {
+
+		response := Pong{
+			XmlnsMx:  "http://mx",
+			XmlnsX14: "http://x14",
+			Result:   "pong " + name,
+			Message:  "all ol",
 		}
-		split := strings.Split(string(clear), ":")
+		ctx.XML(http.StatusOK, response)
 
-		ctx.Application().Logger().Infof("utilisateur %s mot de passe %s\n", split[0], split[1])
+		log.Println("pong with param " + name)
+
+	} else {
+
+		log.Println(ctx.Request.Header)
+
+		autorisation := ctx.Request.Header.Get("Authorization")
+		b64, found := strings.CutPrefix(autorisation, "Basic ")
+		if found {
+			plain, err := base64.RawStdEncoding.DecodeString(b64)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			userpass := strings.Split(string(plain), ":")
+			user := userpass[0]
+			pass := userpass[1]
+
+			log.Println("username " + user + " password " + pass)
+
+		}
+
+		ctx.XML(http.StatusOK, gin.H{
+			"message": "pong",
+		})
 	}
-	name := ctx.Params().Get("name")
-	ctx.ViewData("name", name)
-	ctx.ViewData("complement", "true")
-	ctx.View("home.html")
 
+}
+
+func setupRouter() *gin.Engine {
+	//gin.SetMode(gin.ReleaseMode)
+
+	r := gin.Default()
+	r.SetTrustedProxies(nil)
+
+	r.GET("/ping", pong)
+	r.GET("/ping/:name", pong)
+
+	return r
 }
 
 func main() {
 
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		for sig := range c {
-			println()
-			println("end program " + sig.String())
-			os.Exit(0)
-		}
-	}()
-
-	app := newApp()
-	app.Listen(":8080")
+	r := setupRouter()
+	r.Run()
 
 }

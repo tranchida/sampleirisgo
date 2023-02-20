@@ -1,16 +1,20 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
-	"github.com/kataras/iris/v12/httptest"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestMain(t *testing.T) {
+func TestPingRoute(t *testing.T) {
+	router := setupRouter()
 
-	app := newApp()
-	e := httptest.New(t, app)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/ping", nil)
+	router.ServeHTTP(w, req)
 
-	e.GET("/demo/test").WithBasicAuth("test", "test").Expect().Status(httptest.StatusOK)
-
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "<map><message>pong</message></map>", w.Body.String())
 }
