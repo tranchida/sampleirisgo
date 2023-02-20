@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/base64"
-	"fmt"
 	"os"
 	"os/signal"
 	"strings"
@@ -11,8 +10,11 @@ import (
 )
 
 func newApp() *iris.Application {
-	app := iris.New()
 
+	app := iris.Default()
+	app.RegisterView(iris.HTML("./templates", ".html").Reload(true))
+	app.Favicon("./resources/favicon.ico")
+	app.HandleDir("/assets", iris.Dir("./assets"))
 	app.Get("/demo/{name}", demo)
 
 	return app
@@ -21,19 +23,22 @@ func newApp() *iris.Application {
 func demo(ctx iris.Context) {
 
 	auth := ctx.GetHeader("Authorization")
+	if auth != "" {
 
-	b64 := strings.Split(auth, " ")[1]
-	clear, err := base64.RawStdEncoding.DecodeString(b64)
-	if err != nil {
-		ctx.StopWithError(iris.StatusInternalServerError, err)
-		return
+		b64 := strings.Split(auth, " ")[1]
+		clear, err := base64.RawStdEncoding.DecodeString(b64)
+		if err != nil {
+			ctx.StopWithError(iris.StatusInternalServerError, err)
+			return
+		}
+		split := strings.Split(string(clear), ":")
+
+		ctx.Application().Logger().Infof("utilisateur %s mot de passe %s\n", split[0], split[1])
 	}
-	split := strings.Split(string(clear), ":")
-
-	fmt.Printf("username %s password %s\n", split[0], split[1])
-
 	name := ctx.Params().Get("name")
-	ctx.WriteString("Hello world " + name)
+	ctx.ViewData("name", name)
+	ctx.ViewData("complement", "true")
+	ctx.View("home.html")
 
 }
 
