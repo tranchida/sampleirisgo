@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -65,8 +66,10 @@ func setupRouter() *gin.Engine {
 	//gin.SetMode(gin.ReleaseMode)
 
 	r := gin.Default()
+	gin.ForceConsoleColor()
 	r.SetTrustedProxies(nil)
 
+	r.Use(static.Serve("/", static.LocalFile("./web", false)))
 	r.GET("/ping", pong)
 	r.GET("/ping/:name", pong)
 
@@ -76,6 +79,8 @@ func setupRouter() *gin.Engine {
 func main() {
 
 	r := setupRouter()
-	r.Run()
+	if err := r.Run(); err != nil {
+		log.Fatal(err)
+	}
 
 }
