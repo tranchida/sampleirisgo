@@ -1,3 +1,6 @@
+#Hello
+GET http://test:test@localhost:8080
+
 #simple
 GET http://test:test@localhost:8080/ping
 
@@ -9,5 +12,56 @@ GET http://test:test@localhost:8080/ping/giampaolo
 
 GET https://demo:demo@samplegingo-xcigta.apps.lab01.k8s.etat-de-vaud.ch/ping
 
+###
+POST http://esb-kafka-bridge-esb.apps.lab01.k8s.etat-de-vaud.ch/topics/sample
+content-type: application/vnd.kafka.json.v2+json
 
+{
+"records": [
+    {
+        "key": "my-key",
+        "value": "sales-lead-0001"
+    }
+]
+}
+
+###
+GET http://esb-kafka-bridge-esb.apps.lab01.k8s.etat-de-vaud.ch/topics/demo/partitions/0
+
+###
+POST http://esb-kafka-bridge-esb.apps.lab01.k8s.etat-de-vaud.ch/consumers/mygroupid
+Content-Type: application/vnd.kafka.v2+json
+
+{
+  "name" : "consumer1",
+  "format" : "json",
+  "auto.offset.reset" : "earliest",
+  "enable.auto.commit" : false,
+  "fetch.min.bytes" : 512,
+  "consumer.request.timeout.ms" : 30000
+}
+
+###
+DELETE http://esb-kafka-bridge-esb.apps.lab01.k8s.etat-de-vaud.ch/consumers/mygroupid/instances/consumer1
+
+###
+POST http://esb-kafka-bridge-esb.apps.lab01.k8s.etat-de-vaud.ch:80/consumers/mygroupid/instances/consumer1/assignments
+Content-Type: application/vnd.kafka.v2+json
+
+{
+  "partitions" : [ {
+    "topic" : "demo",
+    "partition" : 0
+  }, {
+    "topic" : "demo",
+    "partition" : 1
+  }, {
+    "topic" : "sample",
+    "partition" : 0
+  } ]
+}
+
+###
+GET http://esb-kafka-bridge-esb.apps.lab01.k8s.etat-de-vaud.ch:80/consumers/mygroupid/instances/consumer1/records
+Accept: application/vnd.kafka.json.v2+json
 
