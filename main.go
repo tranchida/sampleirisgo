@@ -63,7 +63,8 @@ func pong(ctx *gin.Context) {
 }
 
 func setupRouter() *gin.Engine {
-	//gin.SetMode(gin.ReleaseMode)
+
+	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.Default()
 	gin.ForceConsoleColor()
