@@ -12,11 +12,9 @@ import (
 )
 
 type Pong struct {
-	XMLName  xml.Name `xml:"http://evd.vd.ch/1000 response"`
-	XmlnsMx  string   `xml:"mx,attr,omitempty"`
-	XmlnsX14 string   `xml:"x14,attr,omitempty"`
-	Result   string   `xml:"result"`
-	Message  string   `xml:"message"`
+	XMLName xml.Name `xml:"http://evd.vd.ch/1000 response"`
+	Result  string   `xml:"result"`
+	Message string   `xml:"message"`
 }
 
 func pong(ctx *gin.Context) {
@@ -26,10 +24,8 @@ func pong(ctx *gin.Context) {
 	if name != "" {
 
 		response := Pong{
-			XmlnsMx:  "http://mx",
-			XmlnsX14: "http://x14",
-			Result:   "pong " + name,
-			Message:  "all ol",
+			Result:  "pong " + name,
+			Message: "all is ok",
 		}
 		ctx.XML(http.StatusOK, response)
 
